@@ -63,3 +63,39 @@ sapply(d, loocv_tmse)
 
 ## Exercise 1.3
 
+```{r}
+
+```
+
+
+# Exercise 2
+
+```{r}
+
+dgf <- function(n,p) {
+  
+  b <- rep(0,p)
+  b_ <- rep(0,p)
+  e <- rep(0.01,n)
+  X <- matrix(runif(n*p),n,p)
+  y <- 2*X[,1]+4*X[,2]+e
+  r <- y
+  
+  M <- 10
+  
+  for(m in 1:M) {
+    b <- b_
+    xj <- X[,which.max(
+      apply(X,2,function(X,r) cor(x=X,y=r))
+      )]
+    a <- e*sign(t(xj)%*%r)
+    b <- cbind(b,b + a)
+    b_ <- b[,m-1]
+    r <- r - a*xj
+  }
+  
+  return(b)
+}
+dgf(100,5)
+
+```
