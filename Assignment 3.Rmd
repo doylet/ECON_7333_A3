@@ -1,0 +1,65 @@
+---
+title: "ECON7333: Assignment 3"
+author: "Thomas Doyle"
+output:
+  pdf_document: default
+  html_document: 
+    keep_md: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+#### Setup
+
+```{r}
+options(scipen=999)
+set.seed(1234)
+```
+
+# Exercise 1
+
+## Exercise 1.1
+
+```{r}
+
+loocv_tmse <- function(d){
+  #' @d model.frame object of class data.frame
+  #
+  n <- dim(d)[1]
+  p <- dim(d)[2]
+  
+  MSE <- rep(0,n)
+  
+  for(i in 1:n) {
+    lm_i <- lm(d[-i,],y=TRUE) # leave i out
+    MSE_i <- (lm_i$y[i]-predict(lm_i,d[i,]))^2
+    MSE[i] <- MSE_i
+  }
+  
+  return(
+    # 
+    CV_n <- mean(MSE,na.rm = TRUE)
+  )
+}
+
+```
+
+
+## Exercise 1.2
+
+1. $logwage=\beta_0+\beta_1 age$
+2. $logwage=\beta_0+\beta_1\;age + \beta_2\; age^2$
+3. $logwage=\beta_0+\beta_1\;age + \beta_2\; education$
+
+```{r}
+d <- list(
+  model.frame("logwage~age",ISLR::Wage),
+  model.frame("logwage~age+I(age^2)",ISLR::Wage),
+  model.frame("logwage~age+education",ISLR::Wage)
+)
+sapply(d, loocv_tmse)
+
+```
+
+## Exercise 1.3
+
