@@ -78,7 +78,7 @@ lm.ridge <- function(lambda=0) {
   # Hoerl, A. E. and Kennard, R. W. (1970). 
   ridge.betas <- solve( t(X) %*% X + lambda*diag(p) ) %*% t(X) %*% Y
   
-  # predict Y
+  ## predict Y
   # resid <- (Y-X%*%ridge.betas) 
   # penalty <- lambda*sum(ridge.betas[-1]^2)
   # rss <- sum(resid^2)
@@ -98,8 +98,8 @@ lm.ridge <- function(lambda=0) {
 ```
 
 ```{r}
-
-lm.ridge2 <- function(limits) {
+# MLE
+lm.ridge.loocv <- function(limits) {
   
   m <- model.frame(logwage~age+education,ISLR::Wage)
   Terms <- attr(eval.parent(m),"terms")
@@ -113,7 +113,7 @@ lm.ridge2 <- function(limits) {
     
     for (i in 1:n) {
       loo_beta <- solve(t(X[-i,])%*%X[-i,]+lambda*diag(p))%*%t(X[-i,])%*%Y[-i]
-      loss <- loss+(Y[i]-X[i,]%*%loo_beta)^2
+      loss <- loss+(Y[i]-X[i,1]*loo_beta[1]-X[i,-1]%*%loo_beta[-1])^2
     }
     
     return(loss)
@@ -129,8 +129,6 @@ lm.ridge2 <- function(limits) {
   )
 }
 
-# print(lm.ridge2(c(10^(-10), 10^(10))))
-# 0.02045699
 ```
 
 Plot $\ln(\lambda)$ against $\ell_2\;\text{norm}$.
@@ -139,7 +137,8 @@ Plot $\ln(\lambda)$ against $\ell_2\;\text{norm}$.
 lambdas <- 100^seq(-2, 5, length = 60)
 plot(t(sapply(lambdas,lm.ridge))[,1:2],type="l")
 
-# lm.ridge2(c(10^(-10), 10^(10)))
+# mle
+lm.ridge.loocv(c(10^-10, 10^10))
 ```
 
 
