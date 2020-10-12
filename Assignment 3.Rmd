@@ -126,7 +126,7 @@ lm.ridge.loocv <- function(limits) {
   
   return(
     data.frame(opt,l2.norm)
-  )
+  ) 
 }
 
 ```
