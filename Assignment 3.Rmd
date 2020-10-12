@@ -130,13 +130,14 @@ lm.ridge2 <- function(limits) {
   opt
 }
 
-print(lm.ridge2(c(10^(-10), 10^(10))))
+# print(lm.ridge2(c(10^(-10), 10^(10))))
+# 0.02045699
 ```
 
 Plot $\ln(\lambda)$ against $\ell_2\;\text{norm}$.
 
 ```{r}
-lambdas <- 100^seq(-1, 5, length = 60)
+lambdas <- 100^seq(-2, 5, length = 60)
 plot(t(sapply(lambdas,lm.ridge))[,2:3],type="l")
 ```
 
