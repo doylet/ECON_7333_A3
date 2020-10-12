@@ -13,7 +13,6 @@ editor_options:
 
 ```{r}
 options(scipen=999)
-set.seed(1234)
 ```
 
 # Exercise 1
@@ -23,7 +22,7 @@ set.seed(1234)
 ```{r}
 
 loocv_tmse <- function(d){
-  #' @d model.frame object of class data.frame
+  #' @d a data.frame returned by `model.frame()`
   #
   n <- dim(d)[1]
   p <- dim(d)[2]
@@ -31,6 +30,7 @@ loocv_tmse <- function(d){
   MSE <- rep(0,n)
   
   for(i in 1:n) {
+    #
     lm_i <- lm(d[-i,],y=TRUE) # leave i out
     MSE_i <- (lm_i$y[i]-predict(lm_i,d[i,]))^2
     MSE[i] <- MSE_i
@@ -52,18 +52,53 @@ loocv_tmse <- function(d){
 3. $logwage=\beta_0+\beta_1\;age + \beta_2\; education$
 
 ```{r}
-d <- list(
+Wage.models <- list(
   model.frame("logwage~age",ISLR::Wage),
   model.frame("logwage~age+I(age^2)",ISLR::Wage),
   model.frame("logwage~age+education",ISLR::Wage)
 )
-sapply(d, loocv_tmse)
+sapply(Wage.models, loocv_tmse)
 ```
 
 ## Exercise 1.3
 
 ```{r}
-MASS::lm.ridge(logwage~age+education, data = ISLR::Wage, lambda = seq(0,-2,length.out = 100), model = TRUE)
+
+lm.ridge <- function(lambda=0) {
+  if(lambda<0) {
+    stop("Lambda not >= 0")
+  }
+  # .lm <- lm(logwage~age+education,ISLR::Wage)
+  # .rss <- sum(.lm$residuals^2)
+  # .penalty <- lambda*sum(.lm$coefficients^2)
+  
+  m <- model.frame(logwage~age+education,ISLR::Wage)
+  Terms <- attr(eval.parent(m),"terms")
+  Y <- model.response(m)
+  X <- model.matrix(Terms,m,contrasts)
+  n <- nrow(X)
+  p <- ncol(X)
+  
+  obj.fun <- solve(t(X)%*%X+lambda*diag(p))%*%t(X)%*%Y
+  X_ <- X%*%obj.fun
+  resid <- Y - X_
+  
+  rss <- sum(resid^2)
+  penalty <- lambda*sum(obj.fun^2)
+  l2.norm <- sqrt(sum(obj.fun[-1]^2))
+  
+  return(
+    list(
+      # obj.fun=rss+penalty,
+      log.lambda=log(lambda),
+      l2.norm=l2.norm
+    )
+  )
+}
+
+plot(t(sapply(seq(0,1000,length.out = 100),lm.ridge,simplify = TRUE)))
+
+
 ```
 
 
@@ -72,7 +107,11 @@ MASS::lm.ridge(logwage~age+education, data = ISLR::Wage, lambda = seq(0,-2,lengt
 ```{r}
 
 dgf <- function(n,p) {
+  #' @n 
+  #' @p
   
+  # Initialise
+  # 
   b <- rep(0,p)
   b_ <- rep(0,p)
   e <- rep(0.01,n)
