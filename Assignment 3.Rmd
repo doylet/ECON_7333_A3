@@ -76,25 +76,21 @@ lm.ridge <- function(lambda=0) {
   
   # https://arxiv.org/pdf/1509.09169.pdf
   # Hoerl, A. E. and Kennard, R. W. (1970). 
-  ridge.betas <- solve(t(X)%*%X+lambda*diag(p))%*%t(X)%*%Y
-  penalty <- lambda*sum(ridge.betas[-1]^2)
+  ridge.betas <- solve( t(X) %*% X + lambda*diag(p) ) %*% t(X) %*% Y
   
   # predict Y
-  Y_ <- X%*%ridge.betas
-  resid <- (Y-Y_) 
-  rss <- sum(resid^2)
+  # resid <- (Y-X%*%ridge.betas) 
+  # penalty <- lambda*sum(ridge.betas[-1]^2)
+  # rss <- sum(resid^2)
   
   l2.norm <- sqrt(sum(ridge.betas[-1]^2)) # drop intercept
   
   return(
     list(
-      lambda=lambda,
       log.lambda=log(lambda),
       l2.norm=l2.norm,
-      obj=rss+penalty,
-      rss=rss,
-      penalty=penalty,
-      coefficients=ridge.fun
+      coefficients=ridge.betas,
+      lambda=lambda
     )
   )
 }
@@ -126,8 +122,11 @@ lm.ridge2 <- function(limits) {
   # optimize penalty parameter
   # minimize RSS
   opt <- optimize(loocv, limits, X=X, Y=Y)
+  l2.norm <- lm.ridge(opt$minimum)$l2.norm
   
-  opt
+  return(
+    data.frame(opt,l2.norm)
+  )
 }
 
 # print(lm.ridge2(c(10^(-10), 10^(10))))
@@ -138,7 +137,9 @@ Plot $\ln(\lambda)$ against $\ell_2\;\text{norm}$.
 
 ```{r}
 lambdas <- 100^seq(-2, 5, length = 60)
-plot(t(sapply(lambdas,lm.ridge))[,2:3],type="l")
+plot(t(sapply(lambdas,lm.ridge))[,1:2],type="l")
+
+# lm.ridge2(c(10^(-10), 10^(10)))
 ```
 
 
