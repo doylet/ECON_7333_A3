@@ -75,15 +75,16 @@ lm.ridge <- function(lambda=0) {
   p <- ncol(X)
   
   # https://arxiv.org/pdf/1509.09169.pdf
-  ridge.fun <- solve(t(X)%*%X+lambda*diag(p))%*%t(X)%*%Y
-  penalty <- lambda*sum(ridge.fun[-1]^2)
+  # Hoerl, A. E. and Kennard, R. W. (1970). 
+  ridge.betas <- solve(t(X)%*%X+lambda*diag(p))%*%t(X)%*%Y
+  penalty <- lambda*sum(ridge.betas[-1]^2)
   
   # predict Y
-  Y_ <- X%*%ridge.fun
+  Y_ <- X%*%ridge.betas
   resid <- (Y-Y_) 
   rss <- sum(resid^2)
   
-  l2.norm <- sqrt(sum(ridge.fun^2))
+  l2.norm <- sqrt(sum(ridge.betas[-1]^2)) # drop intercept
   
   return(
     list(
@@ -100,7 +101,39 @@ lm.ridge <- function(lambda=0) {
 
 ```
 
-Plot $\ln(\lambda)$ against $\ell_2-norm$.
+```{r}
+
+lm.ridge2 <- function(limits) {
+  
+  m <- model.frame(logwage~age+education,ISLR::Wage)
+  Terms <- attr(eval.parent(m),"terms")
+  Y <- model.response(m)
+  X <- model.matrix(object = Terms,data = m,contrasts.arg = list(education="contr.treatment"))
+  
+  loocv <- function(lambda, X, Y, Delta){
+    n <- nrow(X)
+    p <- ncol(X)
+    loss <- 0
+    
+    for (i in 1:n) {
+      loo_beta <- solve(t(X[-i,])%*%X[-i,]+lambda*diag(p))%*%t(X[-i,])%*%Y[-i]
+      loss <- loss+(Y[i]-X[i,]%*%loo_beta)^2
+    }
+    
+    return(loss)
+  }
+  
+  # optimize penalty parameter
+  # minimize RSS
+  opt <- optimize(loocv, limits, X=X, Y=Y)
+  
+  opt
+}
+
+print(lm.ridge2(c(10^(-10), 10^(10))))
+```
+
+Plot $\ln(\lambda)$ against $\ell_2\;\text{norm}$.
 
 ```{r}
 lambdas <- 100^seq(-1, 5, length = 60)
