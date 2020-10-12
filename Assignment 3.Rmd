@@ -13,6 +13,7 @@ editor_options:
 
 ```{r}
 options(scipen=999)
+attach(ISLR::Wage)
 ```
 
 # Exercise 1
@@ -44,7 +45,6 @@ loocv_tmse <- function(d){
 
 ```
 
-
 ## Exercise 1.2
 
 1. $logwage=\beta_0+\beta_1 age$
@@ -65,40 +65,40 @@ sapply(Wage.models, loocv_tmse)
 ```{r}
 
 lm.ridge <- function(lambda=0) {
-  if(lambda<0) {
-    stop("Lambda not >= 0")
-  }
-  # .lm <- lm(logwage~age+education,ISLR::Wage)
-  # .rss <- sum(.lm$residuals^2)
-  # .penalty <- lambda*sum(.lm$coefficients^2)
   
   m <- model.frame(logwage~age+education,ISLR::Wage)
   Terms <- attr(eval.parent(m),"terms")
   Y <- model.response(m)
-  X <- model.matrix(Terms,m,contrasts)
+  X <- model.matrix(object = Terms,data = m,contrasts.arg = list(education="contr.treatment"))
   n <- nrow(X)
   p <- ncol(X)
   
-  obj.fun <- solve(t(X)%*%X+lambda*diag(p))%*%t(X)%*%Y
-  X_ <- X%*%obj.fun
-  resid <- Y - X_
+  # https://arxiv.org/pdf/1509.09169.pdf
+  ridge.fun <- solve(t(X)%*%X+lambda*diag(p))%*%t(X)%*%Y
+  penalty <- lambda*sum(ridge.fun[-1]^2)
   
+  Y_ <- X%*%ridge.fun
+  resid <- (Y-Y_)
   rss <- sum(resid^2)
-  penalty <- lambda*sum(obj.fun^2)
-  l2.norm <- sqrt(sum(obj.fun[-1]^2))
+  
+  l2.norm <- sqrt(sum(ridge.fun^2))
   
   return(
     list(
-      # obj.fun=rss+penalty,
+      lambda=lambda,
       log.lambda=log(lambda),
-      l2.norm=l2.norm
+      l2.norm=l2.norm,
+      obj=rss+penalty,
+      rss=rss,
+      penalty=penalty,
+      coefficients=ridge.fun
     )
   )
 }
 
-plot(t(sapply(seq(0,1000,length.out = 100),lm.ridge,simplify = TRUE)))
-
-
+lambdas <- 100^seq(-1, 4, length = 60)
+plot(t(sapply(lambdas,lm.ridge))[,2:3],type="l")
+plot(t(sapply(lambdas,lm.ridge))[,5:6])
 ```
 
 
