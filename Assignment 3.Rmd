@@ -58,13 +58,12 @@ d <- list(
   model.frame("logwage~age+education",ISLR::Wage)
 )
 sapply(d, loocv_tmse)
-
 ```
 
 ## Exercise 1.3
 
 ```{r}
-
+MASS::lm.ridge(logwage~age+education, data = ISLR::Wage, lambda = seq(0,-2,length.out = 100), model = TRUE)
 ```
 
 
