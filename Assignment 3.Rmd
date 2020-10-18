@@ -181,16 +181,18 @@ subset_selection <- function(y,X,M) {
   
   for(m in 2:M) {
     
-    ## select x_j with best r^2
-    xj <- X[,which.max(
+    j <- which.max(
       apply(X,2,function(x) {
         .r <<- r
         cor(x=x,y=.r)
       })
-    )]
+    )
+    
+    ## select x_j with best r^2
+    xj <- X[,j]
 
-    a <- e*sign(xj%*%t(r))
-    b <- cbind(b, b[,m-1]+a)
+    a <- e*sign(t(xj)%*%r)
+    b <- cbind(b, b[j,]+a)
     r <- r-a%*%xj
     
   }
@@ -198,6 +200,6 @@ subset_selection <- function(y,X,M) {
   return(b)
 }
 
-subset_selection(y,X,5)
+subset_selection(y,X,50)
 
 ```
