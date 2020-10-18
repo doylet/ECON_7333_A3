@@ -175,13 +175,11 @@ subset_selection <- function(y,X,M) {
   
   # Initialise
   # 
-  b <- matrix(rep(0,p*M),p,M)
+  b <- matrix(rep(0,p*1),p,1)
   r <- y
   e <- rep(0.01,n)
   
-  for(m in 1:M) {
-    
-    if(m>1) b[,m] <- b[,m-1]
+  for(m in 2:M) {
     
     ## select x_j with best r^2
     xj <- X[,which.max(
@@ -192,7 +190,7 @@ subset_selection <- function(y,X,M) {
     )]
 
     a <- e*sign(xj%*%t(r))
-    b[,m] <- b[,m]+a
+    b <- cbind(b, b[,m-1]+a)
     r <- r-a%*%xj
     
   }
