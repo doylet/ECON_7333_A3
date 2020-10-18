@@ -144,36 +144,59 @@ lm.ridge.loocv(c(10^-10, 10^10))
 
 # Exercise 2
 
-```{r}
 
+```{r}
 dgf <- function(n,p) {
   #' @n 
   #' @p
   
+  e <- rnorm(n,0,1)
+  X <- matrix(runif(n*p),n,p)
+  y <- 2*X[,1]+4*X[,2]+e
+
+  output <- list(y=y,X=X)
+  return(list(y,X))
+}
+
+y <- dgf(100,5)[[1]]
+X <- dgf(100,5)[[2]]
+
+```
+
+```{r}
+
+subset_selection <- function(y,X,M) {
+  #' @y 
+  #' @X
+  #' @M  
+  
+  p <- dim(X)[2]
+  n <- dim(X)[1]
+  
   # Initialise
   # 
   b <- rep(0,p)
-  b_ <- rep(0,p)
-  e <- rep(0.01,n)
-  X <- matrix(runif(n*p),n,p)
-  y <- 2*X[,1]+4*X[,2]+e
   r <- y
-  
-  M <- 10
+  e <- rep(0.01,n)
   
   for(m in 1:M) {
-    b <- b_
+
+    ## select x_j with best r^2
     xj <- X[,which.max(
-      apply(X,2,function(X,r) cor(x=X,y=r))
-      )]
-    a <- e*sign(t(xj)%*%r)
-    b <- cbind(b,b + a)
-    b_ <- b[,m-1]
-    r <- r - a*xj
+      apply(X,2,function(x) {
+        .r <<- r
+        cor(x=x,y=.r)
+      })
+    )]
+
+    a <- e*sign(xj*t(r))
+    b <- cbind(b,b+a)
+    r <- r-a*xj
   }
   
   return(b)
 }
-dgf(100,5)
+
+subset_selection(y,X,5)
 
 ```
