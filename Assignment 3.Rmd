@@ -190,13 +190,11 @@ subset_selection <- function(y,X,M) {
         cor(x=x,y=.r)
       })
     )]
-    # print(r)
+
     a <- e*sign(xj%*%t(r))
-    # print(a)
     b[,m] <- b[,m]+a
+    r <- r-a%*%xj
     
-    r <- r-a*xj
-    # print(r)
   }
   
   return(b)
