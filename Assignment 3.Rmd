@@ -193,13 +193,13 @@ subset_selection <- function(y,X,M) {
 
     a <- suppressWarnings(e*sign(t(xj)%*%r))
     b <- suppressWarnings(cbind(b, b[j,]+a))
-    r <- r-a%*%xj
+    r <- suppressWarnings(r-a%*%xj)
     
   }
   
   return(b)
 }
 
-dim(subset_selection(y,X,1000))
+subset_selection(y,X,100)
 
 ```
