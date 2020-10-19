@@ -191,8 +191,8 @@ subset_selection <- function(y,X,M) {
     ## select x_j with best r^2
     xj <- X[,j]
 
-    a <- e*sign(t(xj)%*%r)
-    b <- cbind(b, b[j,]+a)
+    a <- suppressWarnings(e*sign(t(xj)%*%r))
+    b <- suppressWarnings(cbind(b, b[j,]+a))
     r <- r-a%*%xj
     
   }
@@ -200,6 +200,6 @@ subset_selection <- function(y,X,M) {
   return(b)
 }
 
-subset_selection(y,X,50)
+dim(subset_selection(y,X,1000))
 
 ```
