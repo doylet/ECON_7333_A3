@@ -144,6 +144,7 @@ lm.ridge.loocv(c(10^-10, 10^10))
 
 # Exercise 2
 
+## Exercise 1.1
 
 ```{r}
 dgf <- function(n,p) {
@@ -157,14 +158,15 @@ dgf <- function(n,p) {
   output <- list(y=y,X=X)
   return(list(y,X))
 }
-
-y <- dgf(100,5)[[1]]
-X <- dgf(100,5)[[2]]
+d.5 <- dgf(100,5)
+y <- d.5[[1]]
+X <- d.5[[2]]
 
 ```
 
-```{r}
+## Exercise 1.2
 
+```{r}
 subset_selection <- function(y,X,M) {
   #' @y 
   #' @X
@@ -175,31 +177,56 @@ subset_selection <- function(y,X,M) {
   
   # Initialise
   # 
-  b <- matrix(rep(0,p*1),p,1)
-  r <- y
-  e <- rep(0.01,n)
+  b <- matrix(rep(0,p),p,1)
+  r <- as.vector(y)
+  e <- as.vector(rep(0.01,n))
   
   for(m in 2:M) {
     
     j <- which.max(
       apply(X,2,function(x) {
-        .r <<- r
-        cor(x=x,y=.r)
+        cor(x=x,y=r)
       })
     )
     
-    ## select x_j with best r^2
+    ## select x_j with highest
     xj <- X[,j]
 
     a <- suppressWarnings(e*sign(t(xj)%*%r))
-    b <- suppressWarnings(cbind(b, b[j,]+a))
+    b <- suppressWarnings(cbind(b,b[j,]+a))
     r <- suppressWarnings(r-a%*%xj)
     
   }
   
   return(b)
 }
-
 subset_selection(y,X,100)
+```
+
+## Exercise 1.3
+
+Plot $\hat{\beta}^{(m)}$ using `matplot`.
+
+```{r}
+
+ss.b <- subset_selection(y,X,1000)
+lm.b <- lm(y~X)
+
+matplot(ss.b,pch=20, cex=.5)
+plot(lm.b$coefficients[-1], pch=20, cex=.5)
+
+```
+
+Curry `dgf` and `subset_selection`.
+
+```{r}
+
+xx <- function() {
+  sapply(y,function(x) {
+    y*x
+  })
+}
+
+xx()
 
 ```
