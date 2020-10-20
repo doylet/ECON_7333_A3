@@ -182,14 +182,8 @@ subset_selection <- function(y,X,M) {
   e <- as.vector(rep(0.01,n))
   
   for(m in 2:M) {
-    
-    j <- which.max(
-      apply(X,2,function(x) {
-        cor(x=x,y=r)
-      })
-    )
-    
-    ## select x_j with highest
+    ## select x_j with highest correlation with r
+    j <- which.max(cor(x=r,y=X))
     xj <- X[,j]
 
     a <- suppressWarnings(e*sign(t(xj)%*%r))
