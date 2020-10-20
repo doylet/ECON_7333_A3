@@ -100,7 +100,9 @@ lm.ridge <- function(lambda=0) {
 ```{r}
 # MLE
 lm.ridge.loocv <- function(limits) {
-  
+  #' @limits 
+  #
+
   m <- model.frame(logwage~age+education,ISLR::Wage)
   Terms <- attr(eval.parent(m),"terms")
   Y <- model.response(m)
@@ -225,21 +227,23 @@ plot(lm.b$coefficients[-1], pch=20, cex=.8,
 
 ```{r}
 
-n <- dim(X)[1]
-sample(X,n/2)
+
+s1 <- model.frame("y~X-1",data=data.frame(y,X),subset=1:50)
+s2 <- model.frame("y~X-1",data=data.frame(y,X),subset=51:100)
+
+mean(apply(ss.b,2, function(x) {
+  sum((s1$y - x%*%t(s1$X))^2)
+}))
+mean(apply(ss.b,2, function(x) {
+  sum((s2$y - x%*%t(s2$X))^2)
+}))
+
 
 ```
 
-Curry `dgf` and `subset_selection`.
+Curry `dgf` and `subset_selection` so that `p` is only variable.
 
 ```{r}
 
-xx <- function() {
-  sapply(y,function(x) {
-    y*x
-  })
-}
-
-xx()
 
 ```
