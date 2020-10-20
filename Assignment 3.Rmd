@@ -144,7 +144,7 @@ lm.ridge.loocv(c(10^-10, 10^10))
 
 # Exercise 2
 
-## Exercise 1.1
+## Exercise 2.1
 
 ```{r}
 dgf <- function(n,p) {
@@ -164,7 +164,7 @@ X <- d.5[[2]]
 
 ```
 
-## Exercise 1.2
+## Exercise 2.2
 
 ```{r}
 subset_selection <- function(y,X,M) {
@@ -177,27 +177,31 @@ subset_selection <- function(y,X,M) {
   
   # Initialise
   # 
-  b <- matrix(rep(0,p),p,1)
+  b <- matrix(rep(NA,p*M),p,M)
+  b[,1] <- 0
   r <- as.vector(y)
-  e <- as.vector(rep(0.01,n))
+  # e <- as.vector(rep(0.01,n))
+  e <- 0.01
   
   for(m in 2:M) {
-    ## select x_j with highest correlation with r
-    j <- which.max(cor(x=r,y=X))
-    xj <- X[,j]
-
-    a <- suppressWarnings(e*sign(t(xj)%*%r))
-    b <- suppressWarnings(cbind(b,b[j,]+a))
-    r <- suppressWarnings(r-a%*%xj)
+    z <- b[,m-1]
     
+    ## select x_j with highest correlation with r
+    j <- which.max(cor(x=X,y=r))
+    xj <- X[,j]
+    
+    a <- suppressWarnings(e*sign(t(xj)%*%r))
+    z[j] <- z[j]+a
+    b[,m] <- z
+    r <- as.vector(r-a%*%xj)
   }
   
   return(b)
 }
-subset_selection(y,X,100)
+
 ```
 
-## Exercise 1.3
+## Exercise 2.3
 
 Plot $\hat{\beta}^{(m)}$ using `matplot`.
 
@@ -206,8 +210,23 @@ Plot $\hat{\beta}^{(m)}$ using `matplot`.
 ss.b <- subset_selection(y,X,1000)
 lm.b <- lm(y~X)
 
-matplot(ss.b,pch=20, cex=.5)
-plot(lm.b$coefficients[-1], pch=20, cex=.5)
+matplot(ss.b,pch=2, cex=.2, col="black",
+        ylab="level estimates",
+        xlab=expression(hat(beta)[j]^(m)),
+        main="")
+plot(lm.b$coefficients[-1], pch=20, cex=.8,
+     ylab="level estimates",
+     xlab=expression(hat(beta)),
+     main="Linear model")
+
+```
+
+## Exercise 2.4
+
+```{r}
+
+n <- dim(X)[1]
+sample(X,n/2)
 
 ```
 
