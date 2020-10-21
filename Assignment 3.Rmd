@@ -160,19 +160,20 @@ dgf <- function(n,p) {
   output <- list(y=y,X=X)
   return(list(y,X))
 }
-d.5 <- dgf(100,5)
-y <- d.5[[1]]
-X <- d.5[[2]]
+p.5 <- dgf(100,5)
+
+y <- p.5[[1]]
+X <- p.5[[2]]
 
 ```
 
 ## Exercise 2.2
 
 ```{r}
-subset_selection <- function(y,X,M) {
-  #' @y 
-  #' @X
-  #' @M  
+model_path <- function(y,X,M) {
+  #' @y `vector`, response variable
+  #' @X `matrix`, input variable
+  #' @M `scalar`, model path
   
   p <- dim(X)[2]
   n <- dim(X)[1]
@@ -209,41 +210,105 @@ Plot $\hat{\beta}^{(m)}$ using `matplot`.
 
 ```{r}
 
-ss.b <- subset_selection(y,X,1000)
-lm.b <- lm(y~X)
+path <- model_path(y,X,1000)
 
-matplot(ss.b,pch=2, cex=.2, col="black",
+par(mfrow=c(1,2))
+matplot(path,pch=2, cex=.2, col="black",
         ylab="level estimates",
         xlab=expression(hat(beta)[j]^(m)),
         main="")
-plot(lm.b$coefficients[-1], pch=20, cex=.8,
+
+plot(lm(y~X-1)$coefficients, pch=20, cex=.8,
      ylab="level estimates",
      xlab=expression(hat(beta)),
-     main="Linear model")
+     main="y~X")
+
 
 ```
 
 ## Exercise 2.4
 
 ```{r}
+mse_i <- function(y,X,m,i) {
+  mean(sum((y[i] - m%*%t(X[i,]))^2))
+}
 
+subset_selection <- function(y,X,M,k) {
+  #' @y
+  #' @X
+  #' @M
+  #' @k 
+  
+  # calculate MSE by iterate over M
+  MSE_i <- apply(M,2,function(m) {
+    mse_i(y,X,m,k)
+  })
+  
+  # Return coef for model with min MSE
+  return(
+    list(
+      coefficients = M[,which.min(MSE_i)],
+      best_subset_m = which.min(MSE_i)
+    )
+  )
+}
 
-s1 <- model.frame("y~X-1",data=data.frame(y,X),subset=1:50)
-s2 <- model.frame("y~X-1",data=data.frame(y,X),subset=51:100)
-
-mean(apply(ss.b,2, function(x) {
-  sum((s1$y - x%*%t(s1$X))^2)
-}))
-mean(apply(ss.b,2, function(x) {
-  sum((s2$y - x%*%t(s2$X))^2)
-}))
-
-
+k_fold <- function(n,k) {
+  
+  ix <- sample(1:n,n)
+  fold_i <- split(1:n,cut(1:n,k,FALSE))
+  
+  sapply(k,function(x) {
+    assign(paste("fold",k,"_"),ix[fold_i[[k]]],envir=.GlobalEnv)
+  })
+}
+k_fold(100,4)
 ```
 
-Curry `dgf` and `subset_selection` so that `p` is only variable.
+```{r}
+ix <- sample(1:100,100)
+
+fold_1 <- ix[1:50]
+fold_2 <- ix[51:100]
+
+# obtain test MSE using k-fold
+fold_1_tmse <- mse_i(y,X,subset_selection(y,X,path,fold_1)[["coefficients"]],fold_2)
+fold_2_tmse <- mse_i(y,X,subset_selection(y,X,path,fold_2)[["coefficients"]],fold_1)
+which.min(c(fold_1_tmse,fold_2_tmse))
+
+subset_selection(y,X,path,fold_1)
+subset_selection(y,X,path,fold_2)
+
+LM_MSE <- sum(lm(y~X-1)$residuals^2)
+```
 
 ```{r}
+CV_k <- function(n,p) {
+  
+  # call dgf to generate n x p data
+  d <- dgf(n,p)
+  
+  y <- d[[1]]
+  X <- d[[2]]
+  
+  # generate models
+  path <- model_path(y,X,1000)
+  
+  ix <- sample(1:n,n)
+  
+  fold_1 <- ix[1:50]
+  fold_2 <- ix[51:100]
+
+  # obtain test MSE using k-fold
+  tmse_1 <- mse_i(y,X,subset_selection(y,X,path,fold_1)[["coefficients"]],fold_2)
+  tmse_1 <- mse_i(y,X,train(y,X,path,fold_2)[["coefficients"]],fold_1)
+  LM_MSE <- sum(lm(y~X-1)$residuals^2)
+  return(list(MSE_1,MSE_2,LM_MSE))
+}
 
 
+CV_k(100,5)
+CV_k(100,10)
+CV_k(100,20)
+CV_k(100,50)
 ```
