@@ -256,28 +256,28 @@ subset_selection <- function(y,X,M,k) {
 k_fold <- function(n,k) {
   
   ix <- sample(1:n,n)
-  fold_i <- split(1:n,cut(1:n,k,FALSE))
+  fold_i <- split(ix,cut(1:100,k,FALSE))
   
-  sapply(k,function(x) {
-    assign(paste("fold",k,"_"),ix[fold_i[[k]]],envir=.GlobalEnv)
-  })
+  folds <- data.frame(fold_i)
+  
+  colnames(folds) <- paste("fold",1:k,sep = "_")
+  
+  return(folds)
 }
-k_fold(100,4)
+
 ```
 
 ```{r}
-ix <- sample(1:100,100)
 
-fold_1 <- ix[1:50]
-fold_2 <- ix[51:100]
+folds <- k_fold(100,2)
 
 # obtain test MSE using k-fold
-fold_1_tmse <- mse_i(y,X,subset_selection(y,X,path,fold_1)[["coefficients"]],fold_2)
-fold_2_tmse <- mse_i(y,X,subset_selection(y,X,path,fold_2)[["coefficients"]],fold_1)
+fold_1_tmse <- mse_i(y,X,subset_selection(y,X,path,folds[,1])[["coefficients"]],folds[,2])
+fold_2_tmse <- mse_i(y,X,subset_selection(y,X,path,folds[,2])[["coefficients"]],folds[,1])
 which.min(c(fold_1_tmse,fold_2_tmse))
 
-subset_selection(y,X,path,fold_1)
-subset_selection(y,X,path,fold_2)
+subset_selection(y,X,path,folds[,1])
+subset_selection(y,X,path,folds[,2])
 
 LM_MSE <- sum(lm(y~X-1)$residuals^2)
 ```
@@ -285,7 +285,7 @@ LM_MSE <- sum(lm(y~X-1)$residuals^2)
 ```{r}
 CV_k <- function(n,p) {
   
-  # call dgf to generate n x p data
+  # call dgf to generate new n x p data
   d <- dgf(n,p)
   
   y <- d[[1]]
@@ -294,14 +294,11 @@ CV_k <- function(n,p) {
   # generate models
   path <- model_path(y,X,1000)
   
-  ix <- sample(1:n,n)
-  
-  fold_1 <- ix[1:50]
-  fold_2 <- ix[51:100]
+  folds <- k_fold(n,2)
 
   # obtain test MSE using k-fold
-  tmse_1 <- mse_i(y,X,subset_selection(y,X,path,fold_1)[["coefficients"]],fold_2)
-  tmse_1 <- mse_i(y,X,train(y,X,path,fold_2)[["coefficients"]],fold_1)
+  tmse_1 <- mse_i(y,X,subset_selection(y,X,path,folds[,1])[["coefficients"]],folds[,2])
+  tmse_1 <- mse_i(y,X,train(y,X,path,folds[,2])[["coefficients"]],folds[,1])
   LM_MSE <- sum(lm(y~X-1)$residuals^2)
   return(list(MSE_1,MSE_2,LM_MSE))
 }
