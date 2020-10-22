@@ -20,6 +20,7 @@ attach(ISLR::Wage)
 
 ## Exercise 1.1
 
+The following function, `loocv_tmse`, computes the test mean square error of a regression model using a leave-one-out cross-validation approach.
 ```{r}
 
 loocv_tmse <- function(d){
@@ -47,10 +48,13 @@ loocv_tmse <- function(d){
 
 ## Exercise 1.2
 
+We use `loocv_tmse` to choose beteen the three models;
+
 1. $logwage=\beta_0+\beta_1 age$
 2. $logwage=\beta_0+\beta_1\;age + \beta_2\; age^2$
 3. $logwage=\beta_0+\beta_1\;age + \beta_2\; education$
 
+Each model takes `logwage` as output variable.
 ```{r}
 Wage.models <- list(
   model.frame("logwage~age",ISLR::Wage),
@@ -62,6 +66,8 @@ sapply(Wage.models, loocv_tmse)
 
 ## Exercise 1.3
 
+The $\lambda$ parameter is now used as tuning parameter on the ridge regression model;
+$$logwage=\beta_0+\beta_1\;age + \beta_2\; education$$
 
 ```{r}
 
@@ -99,6 +105,7 @@ lm.ridge <- function(lambda=0) {
 
 ```{r}
 # MLE
+# showing off
 lm.ridge.loocv <- function(limits) {
   #' @limits 
   #
@@ -150,8 +157,8 @@ lm.ridge.loocv(c(10^-10, 10^10))
 
 ```{r}
 dgf <- function(n,p) {
-  #' @n 
-  #' @p
+  #' @n `scalar`
+  #' @p `scalar`
   
   e <- rnorm(n,0,1)
   X <- matrix(runif(n*p),n,p)
@@ -160,8 +167,8 @@ dgf <- function(n,p) {
   output <- list(y=y,X=X)
   return(list(y,X))
 }
-p.5 <- dgf(100,5)
 
+p.5 <- dgf(100,5)
 y <- p.5[[1]]
 X <- p.5[[2]]
 
@@ -170,6 +177,7 @@ X <- p.5[[2]]
 ## Exercise 2.2
 
 ```{r}
+
 model_path <- function(y,X,M) {
   #' @y `vector`, response variable
   #' @X `matrix`, input variable
@@ -206,7 +214,7 @@ model_path <- function(y,X,M) {
 
 ## Exercise 2.3
 
-Plot $\hat{\beta}^{(m)}$ using `matplot`.
+Generate a sample path of $M=1000$ coeficient estimates   $\hat{\beta}_j^{(m)}$, and plot the sample using `matplot`.
 
 ```{r}
 
@@ -219,11 +227,9 @@ matplot(path,pch=2, cex=.2, col="black",
         main="")
 
 plot(lm(y~X-1)$coefficients, pch=20, cex=.8,
-     ylab="level estimates",
+     ylab="level coeficient estimates",
      xlab=expression(hat(beta)),
      main="y~X")
-
-
 ```
 
 ## Exercise 2.4
@@ -256,7 +262,8 @@ subset_selection <- function(y,X,M,k) {
 k_fold <- function(n,k) {
   
   ix <- sample(1:n,n)
-  fold_i <- split(ix,cut(1:100,k,FALSE))
+  
+  fold_i <- split(ix,cut(1:n,k,FALSE))
   
   folds <- data.frame(fold_i)
   
