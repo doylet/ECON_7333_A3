@@ -225,17 +225,19 @@ par(mfrow=c(1,2))
 matplot(path,pch=2, cex=.2, col="black",
         ylab="level estimates",
         xlab=expression(hat(beta)[j]^(m)),
-        main="")
+        main="M coefficient estimates")
 
 plot(lm(y~X-1)$coefficients, pch=20, cex=.8,
      ylab="level coeficient estimates",
      xlab=expression(hat(beta)),
-     main="y~X")
+     main="linear regression model y~X")
 ```
+
+The figure "M coefficient estimates" plots all coefficient estimates of $\hat{\beta}_j^{(m)}$ following the described algorithm. When compared to the figure "linear regression model y~X", it appears that the coefficeint paths, $m$, evolve to match the coefficients returned by the least squarse regression model. This result suggests that the best subset selection method is comparable with linear regression.
 
 ## Exercise 2.4
 Divide the sample into training and test subsamples of size 50 each. Use
-cross-validation to nd the best model along the paths (that is, find the best model
+cross-validation to find the best model along the paths (that is, find the best model
 among the $M$ dfferent models generated along the path). Choose between that best
 model and linear regression conducted by least squares.
 
