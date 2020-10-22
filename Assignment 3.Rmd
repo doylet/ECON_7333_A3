@@ -185,15 +185,14 @@ model_path <- function(y,X,M) {
   #' @X `matrix`, input variable
   #' @M `scalar`, model path
   
-  p <- dim(X)[2]
   n <- dim(X)[1]
+  p <- dim(X)[2]
   
   # Initialise
   # 
   b <- matrix(rep(NA,p*M),p,M)
   b[,1] <- 0
   r <- as.vector(y)
-  # e <- as.vector(rep(0.01,n))
   e <- 0.01
   
   for(m in 2:M) {
